@@ -89,6 +89,23 @@ def init_db():
                 audit_id TEXT
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS audit_outcomes (
+                id TEXT PRIMARY KEY,
+                url TEXT NOT NULL,
+                score INTEGER,
+                grade TEXT,
+                confidence TEXT,
+                gene_trace TEXT,
+                alternatives_considered TEXT,
+                recommendations TEXT,
+                outcome_result TEXT DEFAULT 'pending',
+                outcome_verified_at TEXT DEFAULT '',
+                outcome_notes TEXT DEFAULT '',
+                created_at TEXT,
+                updated_at TEXT
+            )
+        """)
 
 def save_audit(audit_id, platform, handle, status, report_path="", result_json="", paid=0, payment_id="", customer_ip=""):
     with sqlite3.connect(AUDITS_DB) as conn:
@@ -126,6 +143,109 @@ def save_payment(payment_id, customer_ip, plan, amount_cents, status, audit_id="
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (payment_id, customer_ip, plan, amount_cents, status, datetime.datetime.now().isoformat(), audit_id))
         conn.commit()
+
+# ── Website Audit Outcomes ──────────────────────────────────────────────────
+
+def save_website_audit_outcome(outcome_id: str, url: str, result: dict):
+    """Save a website audit result BEFORE the outcome is known.
+    This ordering — logging reasoning before outcome — is the critical mechanism
+    that makes the calibration dataset real, not theater (Kailash, 2026-08-19)."""
+    with sqlite3.connect(AUDITS_DB) as conn:
+        now = datetime.datetime.now().isoformat()
+        conn.execute("""
+            INSERT OR REPLACE INTO audit_outcomes
+            (id, url, score, grade, confidence, gene_trace, alternatives_considered,
+             recommendations, outcome_result, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+        """, (
+            outcome_id,
+            url,
+            result.get("score"),
+            result.get("grade"),
+            result.get("confidence"),
+            json.dumps(result.get("gene_trace", [])),
+            json.dumps(result.get("alternatives_considered", [])),
+            json.dumps(result.get("recommendations", [])),
+            now,
+            now,
+        ))
+        conn.commit()
+
+def update_website_audit_outcome(outcome_id: str, outcome_result: str, outcome_notes: str = ""):
+    """Update an audit outcome once the delayed signal arrives.
+    outcome_result: 'confirmed' | 'refuted' | 'inconclusive'"""
+    valid = {"confirmed", "refuted", "inconclusive", "pending"}
+    if outcome_result not in valid:
+        raise ValueError(f"outcome_result must be one of {valid}")
+    with sqlite3.connect(AUDITS_DB) as conn:
+        conn.execute("""
+            UPDATE audit_outcomes
+            SET outcome_result=?, outcome_notes=?, outcome_verified_at=?, updated_at=?
+            WHERE id=?
+        """, (outcome_result, outcome_notes, datetime.datetime.now().isoformat(),
+                datetime.datetime.now().isoformat(), outcome_id))
+        conn.commit()
+
+def get_website_audit_outcome(outcome_id: str):
+    with sqlite3.connect(AUDITS_DB) as conn:
+        row = conn.execute("SELECT * FROM audit_outcomes WHERE id=?", (outcome_id,)).fetchone()
+        if not row:
+            return None
+        cols = ["id","url","score","grade","confidence","gene_trace",
+                "alternatives_considered","recommendations","outcome_result",
+                "outcome_verified_at","outcome_notes","created_at","updated_at"]
+        d = dict(zip(cols, row))
+        for key in ["gene_trace", "alternatives_considered", "recommendations"]:
+            if d.get(key):
+                try: d[key] = json.loads(d[key])
+                except: pass
+        return d
+
+def get_outcomes_summary():
+    """Return calibration stats: gene combos correlated with confirmed outcomes."""
+    with sqlite3.connect(AUDITS_DB) as conn:
+        rows = conn.execute("SELECT * FROM audit_outcomes WHERE outcome_result != 'pending'").fetchall()
+        if not rows:
+            return {"total": 0, "message": "No verified outcomes yet. Feedback loop not yet closed."}
+        cols = ["id","url","score","grade","confidence","gene_trace",
+                "alternatives_considered","recommendations","outcome_result",
+                "outcome_verified_at","outcome_notes","created_at","updated_at"]
+        outcomes = []
+        for row in rows:
+            d = dict(zip(cols, row))
+            for k in ["gene_trace", "recommendations"]:
+                try: d[k] = json.loads(d[k]) if d.get(k) else []
+                except: pass
+            outcomes.append(d)
+
+        total = len(outcomes)
+        confirmed = [o for o in outcomes if o["outcome_result"] == "confirmed"]
+        refuted   = [o for o in outcomes if o["outcome_result"] == "refuted"]
+
+        # Gene frequency analysis
+        from collections import Counter
+        gene_freq = Counter()
+        for o in outcomes:
+            for entry in o.get("gene_trace", []):
+                gene_freq[entry.get("gene","unknown")] += 1
+
+        confirmed_gene_freq = Counter()
+        for o in confirmed:
+            for entry in o.get("gene_trace", []):
+                confirmed_gene_freq[entry.get("gene","unknown")] += 1
+
+        return {
+            "total": total,
+            "confirmed": len(confirmed),
+            "refuted": len(refuted),
+            "inconclusive": total - len(confirmed) - len(refuted),
+            "gene_frequency": dict(gene_freq),
+            "confirmed_gene_frequency": dict(confirmed_gene_freq),
+            "confidence_stats": {
+                str(o.get("confidence","unknown")): o["outcome_result"]
+                for o in outcomes
+            }
+        }
 
 # ── YouTube Scraper ─────────────────────────────────────────────────────────
 def _run_scrape(args, timeout=30):
@@ -338,6 +458,55 @@ def cancel():
 @app.route("/website-audit")
 def website_audit():
     return render_template("website-audit.html")
+
+# ── Website Audit Outcomes API ──────────────────────────────────────────────
+
+@app.route("/api/report-outcome", methods=["POST"])
+def api_report_outcome():
+    """Report the delayed outcome of a website audit.
+    Call this weeks later when you know if the recommendations worked.
+
+    Body: { "outcome_id": "<id>", "result": "confirmed|refuted|inconclusive", "notes": "..." }
+    """
+    data = request.json or {}
+    outcome_id = data.get("outcome_id", "").strip()
+    result_str = data.get("result", "").strip()
+    notes = data.get("notes", "").strip()
+
+    if not outcome_id:
+        return jsonify({"error": "outcome_id is required"}), 400
+    if result_str not in ("confirmed", "refuted", "inconclusive"):
+        return jsonify({"error": "result must be 'confirmed', 'refuted', or 'inconclusive'"}), 400
+
+    existing = get_website_audit_outcome(outcome_id)
+    if not existing:
+        return jsonify({"error": "Outcome ID not found"}), 404
+
+    update_website_audit_outcome(outcome_id, result_str, notes)
+    return jsonify({
+        "outcome_id": outcome_id,
+        "url": existing["url"],
+        "audit_score": existing["score"],
+        "outcome_result": result_str,
+        "verified_at": datetime.datetime.now().isoformat(),
+        "notes": notes,
+        "message": f"Outcome logged as {result_str}. Calibration dataset updated."
+    })
+
+
+@app.route("/api/outcomes-summary", methods=["GET"])
+def api_outcomes_summary():
+    """Return calibration stats: which gene combos correlated with confirmed outcomes."""
+    summary = get_outcomes_summary()
+    return jsonify(summary)
+
+
+@app.route("/api/outcome/<outcome_id>", methods=["GET"])
+def api_get_outcome(outcome_id):
+    outcome = get_website_audit_outcome(outcome_id)
+    if not outcome:
+        return jsonify({"error": "Outcome not found"}), 404
+    return jsonify(outcome)
 
 # ── Payment Routes ──────────────────────────────────────────────────────────
 @app.route("/create-checkout-session", methods=["POST"])
