@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Influencer Audit — JARVIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a28;
+            --surface3: #22223a; --border: #2a2a3e; --text: #f0f0ff;
+            --subtext: #8888aa; --accent: #6366f1; --accent2: #8b5cf6;
+            --green: #10b981; --yellow: #f59e0b; --red: #ef4444;
+            --blue: #3b82f6;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--surface), #1a1040);
+            border-bottom: 1px solid var(--border);
+            padding: 24px 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .header-icon { font-size: 2rem; }
+        .header-text h1 { font-size: 1.4rem; font-weight: 700; }
+        .header-text p { color: var(--subtext); font-size: 0.85rem; margin-top: 2px; }
+        .header-badge {
+            margin-left: auto;
+            background: rgba(99,102,241,0.15);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        /* Main */
+        .main { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+
+        /* Card */
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+        .card-title { font-size: 0.8rem; font-weight: 600; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-body { padding: 20px; }
+
+        /* Input Row */
+        .input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+        .url-input {
+            flex: 1; padding: 14px 16px; background: var(--surface2); border: 2px solid var(--border);
+            border-radius: 12px; color: var(--text); font-size: 0.95rem;
+            font-family: 'JetBrains Mono', monospace; outline: none; transition: border-color 0.2s;
+        }
+        .url-input:focus { border-color: var(--accent); }
+        .url-input::placeholder { color: #555; }
+
+        .btn { padding: 14px 24px; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .platform-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .platform-btn { padding: 8px 18px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface2); color: var(--subtext); font-size: 0.82rem; cursor: pointer; transition: all 0.15s; }
+        .platform-btn:hover { border-color: var(--accent); color: var(--text); }
+        .platform-btn.active { border-color: var(--accent); background: rgba(99,102,241,0.15); color: var(--accent); }
+
+        /* Score Display */
+        .score-section { display: none; margin-top: 20px; }
+        .score-section.visible { display: block; }
+        .score-ring { display: flex; align-items: center; gap: 24px; margin-bottom: 20px; }
+        .score-circle {
+            width: 120px; height: 120px; border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: 700; border: 4px solid; flex-shrink: 0;
+        }
+        .score-circle.good { border-color: var(--green); color: var(--green); }
+        .score-circle.medium { border-color: var(--yellow); color: var(--yellow); }
+        .score-circle.bad { border-color: var(--red); color: var(--red); }
+        .score-circle span { font-size: 0.7rem; font-weight: 500; opacity: 0.7; }
+        .score-details { flex: 1; }
+        .score-grade { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; }
+        .score-grade.good { color: var(--green); }
+        .score-grade.medium { color: var(--yellow); }
+        .score-grade.bad { color: var(--red); }
+        .score-label { color: var(--subtext); font-size: 0.85rem; }
+        .score-meta { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .meta-item { background: var(--surface2); padding: 10px 12px; border-radius: 8px; }
+        .meta-item .val { font-size: 1.1rem; font-weight: 600; }
+        .meta-item .key { font-size: 0.72rem; color: var(--subtext); margin-top: 2px; }
+
+        /* Risk Flags */
+        .risk-section { margin-top: 16px; }
+        .risk-title { font-size: 0.75rem; font-weight: 600; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .risk-item { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; font-size: 0.82rem; color: #fca5a5; }
+        .risk-item.warning { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2); color: #fcd34d; }
+
+        /* Videos Table */
+        .videos-section { margin-top: 16px; }
+        .video-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+        .video-row:last-child { border-bottom: none; }
+        .video-info { flex: 1; min-width: 0; }
+        .video-title { font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .video-meta { font-size: 0.72rem; color: var(--subtext); margin-top: 2px; }
+        .video-eng { font-size: 0.78rem; font-weight: 600; min-width: 60px; text-align: right; }
+        .video-eng.good { color: var(--green); }
+        .video-eng.bad { color: var(--red); }
+
+        /* History */
+        .history-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .history-item:last-child { border-bottom: none; }
+        .history-handle { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 500; min-width: 120px; }
+        .history-platform { font-size: 0.72rem; color: var(--subtext); background: var(--surface2); padding: 2px 8px; border-radius: 10px; }
+        .history-status { margin-left: auto; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 10px; }
+        .history-status.complete { background: rgba(16,185,129,0.15); color: var(--green); }
+        .history-status.running { background: rgba(59,130,246,0.15); color: var(--blue); }
+        .history-status.failed { background: rgba(239,68,68,0.15); color: var(--red); }
+        .history-download { background: transparent; border: 1px solid var(--border); color: var(--subtext); padding: 4px 12px; border-radius: 8px; cursor: pointer; font-size: 0.75rem; }
+        .history-download:hover { background: var(--surface2); color: var(--text); }
+
+        /* Loading */
+        .spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Progress */
+        .progress-section { display: none; margin-top: 16px; text-align: center; padding: 20px; }
+        .progress-section.visible { display: block; }
+        .progress-text { color: var(--subtext); font-size: 0.85rem; margin-top: 8px; }
+        .pulse { animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Error */
+        .error-msg { background: rgba(239,68,68,0.1); border: 1px solid var(--red); border-radius: 8px; padding: 10px 14px; color: #fca5a5; font-size: 0.85rem; margin-top: 10px; display: none; }
+        .error-msg.visible { display: block; }
+
+        @media (max-width: 600px) {
+            .input-row { flex-direction: column; }
+            .score-ring { flex-direction: column; text-align: center; }
+            .score-meta { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-icon">🔍</div>
+    <div class="header-text">
+        <h1>Influencer Audit</h1>
+        <p>Powered by JARVIS AI — Device Fleet Revenue Model #1</p>
+    </div>
+    <a href="/pricing" class="header-badge" style="text-decoration:none">Pricing →</a>
+    <a href="/website-audit" class="header-badge" style="text-decoration:none; margin-left:8px; background:rgba(16,185,129,0.15); border-color:#10b981; color:#10b981;">Website Audit →</a>
+</div>
+
+<div class="main">
+    <!-- Audit Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">New Audit</span>
+        </div>
+        <div class="card-body">
+            <div class="platform-row">
+                <button class="platform-btn active" data-p="YouTube" onclick="selectPlatform('YouTube')">📺 YouTube</button>
+                <button class="platform-btn" data-p="Instagram" onclick="selectPlatform('Instagram')">📸 Instagram</button>
+                <button class="platform-btn" data-p="TikTok" onclick="selectPlatform('TikTok')">🎵 TikTok</button>
+            </div>
+            <div class="input-row">
+                <input type="text" id="handleInput" class="url-input"
+                       placeholder="@channel_handle or full YouTube URL"
+                       autocomplete="off" spellcheck="false">
+                <button class="btn btn-primary" id="auditBtn" onclick="startAudit()">
+                    <span id="btnText">🔍 Audit Now</span>
+                    <span class="spinner" id="btnSpinner"></span>
+                </button>
+            </div>
+            <div class="error-msg" id="errorMsg"></div>
+        </div>
+    </div>
+
+    <!-- Result Card -->
+    <div class="card" id="resultCard" style="display:none">
+        <div class="card-header">
+            <span class="card-title">Audit Results</span>
+            <button class="btn" style="margin-left:auto;background:var(--surface2);color:var(--subtext);padding:6px 14px;font-size:0.8rem" onclick="downloadReport()">📄 Download Report</button>
+        </div>
+        <div class="card-body">
+            <div class="score-section visible" id="scoreSection">
+                <div class="score-ring">
+                    <div class="score-circle" id="scoreCircle">
+                        <span id="scoreNum">--</span>
+                        <span>/100</span>
+                    </div>
+                    <div class="score-details">
+                        <div class="score-grade" id="scoreGrade">--</div>
+                        <div class="score-label" id="scoreLabel">--</div>
+                        <div class="score-meta" id="scoreMeta"></div>
+                    </div>
+                </div>
+                <div class="risk-section" id="riskSection"></div>
+                <div class="videos-section" id="videosSection">
+                    <div class="risk-title">Recent Videos</div>
+                    <div id="videosList"></div>
+                </div>
+            </div>
+            <div class="progress-section" id="progressSection">
+                <div style="font-size:2rem">🔍</div>
+                <div class="progress-text pulse" id="progressText">Analyzing channel data...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Recent Audits</span>
+            <button class="btn" style="margin-left:auto;background:transparent;border:none;color:var(--subtext);font-size:0.75rem;cursor:pointer" onclick="loadHistory()">↻ Refresh</button>
+        </div>
+        <div class="card-body" id="historyList">
+            <div style="text-align:center;color:#444;padding:20px;font-size:0.85rem">No audits yet.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedPlatform = "YouTube";
+let currentAuditId = null;
+
+(async () => {
+    loadHistory();
+    document.getElementById("handleInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") startAudit();
+    });
+})();
+
+function selectPlatform(p) {
+    selectedPlatform = p;
+    document.querySelectorAll(".platform-btn").forEach(b => {
+        b.classList.toggle("active", b.dataset.p === p);
+    });
+    const placeholder = {
+        YouTube: "@channel_handle or full YouTube URL",
+        Instagram: "@username",
+        TikTok: "@username"
+    };
+    document.getElementById("handleInput").placeholder = placeholder[p] || "";
+}
+
+async function startAudit() {
+    const handle = document.getElementById("handleInput").value.trim();
+    if (!handle) return;
+
+    const btn = document.getElementById("auditBtn");
+    const btnText = document.getElementById("btnText");
+    const btnSpinner = document.getElementById("btnSpinner");
+    btn.disabled = true;
+    btnText.style.display = "none";
+    btnSpinner.style.display = "inline-block";
+    document.getElementById("errorMsg").classList.remove("visible");
+    document.getElementById("resultCard").style.display = "none";
+
+    try {
+        const r = await fetch("/api/audit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ platform: selectedPlatform, handle })
+        });
+        const d = await r.json();
+        if (!r.ok) { showError(d.error); return; }
+        currentAuditId = d.audit_id;
+        pollResult(d.audit_id);
+    } catch(e) {
+        showError("Network error. Try again.");
+    } finally {
+        btn.disabled = false;
+        btnText.style.display = "inline";
+        btnSpinner.style.display = "none";
+    }
+}
+
+async function pollResult(auditId) {
+    const resultCard = document.getElementById("resultCard");
+    const scoreSection = document.getElementById("scoreSection");
+    const progressSection = document.getElementById("progressSection");
+    resultCard.style.display = "block";
+    scoreSection.classList.remove("visible");
+    progressSection.classList.add("visible");
+
+    const steps = ["Analyzing channel data...", "Fetching subscriber metrics...", "Checking engagement rates...", "Scanning recent videos...", "Calculating authenticity score...", "Generating report..."];
+    let stepIdx = 0;
+    const stepTimer = setInterval(() => {
+        stepIdx = (stepIdx + 1) % steps.length;
+        document.getElementById("progressText").textContent = steps[stepIdx];
+    }, 3000);
+
+    const poll = async () => {
+        for (let i = 0; i < 60; i++) {
+            await new Promise(r => setTimeout(r, 2000));
+            try {
+                const r = await fetch(`/api/status/${auditId}`);
+                const d = await r.json();
+                if (d.status === "complete") {
+                    clearInterval(stepTimer);
+                    showResult(d);
+                    return;
+                } else if (d.status === "failed") {
+                    clearInterval(stepTimer);
+                    showError(d.result?.error || "Audit failed");
+                    resultCard.style.display = "none";
+                    return;
+                }
+            } catch(e) {}
+        }
+        clearInterval(stepTimer);
+        showError("Audit timed out. Try again.");
+        resultCard.style.display = "none";
+    };
+    poll();
+}
+
+function showResult(d) {
+    const scoreSection = document.getElementById("scoreSection");
+    const progressSection = document.getElementById("progressSection");
+    scoreSection.classList.add("visible");
+    progressSection.classList.remove("visible");
+
+    const r = d.result || {};
+    const score = r.score || 0;
+    const reasons = r.reasons || [];
+    const channel = r.channel || {};
+
+    // Score circle
+    const circle = document.getElementById("scoreCircle");
+    circle.className = "score-circle " + (score >= 70 ? "good" : score >= 40 ? "medium" : "bad");
+    document.getElementById("scoreNum").textContent = score;
+
+    // Grade
+    const gradeEl = document.getElementById("scoreGrade");
+    const labelEl = document.getElementById("scoreLabel");
+    if (score >= 80) { gradeEl.textContent = "A — HIGH AUTHENTICITY"; gradeEl.className = "score-grade good"; labelEl.textContent = "Followers appear genuine and engaged"; }
+    else if (score >= 60) { gradeEl.textContent = "B — LIKELY AUTHENTIC"; gradeEl.className = "score-grade medium"; labelEl.textContent = "Mostly genuine with minor irregularities"; }
+    else if (score >= 40) { gradeEl.textContent = "C — UNCLEAR"; gradeEl.className = "score-grade medium"; labelEl.textContent = "Some signs of inauthentic activity"; }
+    else if (score >= 20) { gradeEl.textContent = "D — SUSPICIOUS"; gradeEl.className = "score-grade bad"; labelEl.textContent = "Strong indicators of fake followers"; }
+    else { gradeEl.textContent = "F — HIGH RISK"; gradeEl.className = "score-grade bad"; labelEl.textContent = "Likely heavily inflated follower count"; }
+
+    // Meta
+    const subs = (channel.subscriber_count || 0);
+    const views = (channel.view_count || 0);
+    const videos = (channel.video_count || 0);
+    document.getElementById("scoreMeta").innerHTML = `
+        <div class="meta-item"><div class="val">${subs >= 1000 ? (subs/1000).toFixed(1)+'K' : subs}</div><div class="key">Subscribers</div></div>
+        <div class="meta-item"><div class="val">${views >= 1000000 ? (views/1000000).toFixed(1)+'M' : views >= 1000 ? (views/1000).toFixed(0)+'K' : views}</div><div class="key">Total Views</div></div>
+        <div class="meta-item"><div class="val">${videos}</div><div class="key">Videos</div></div>
+        <div class="meta-item"><div class="val">${channel.title || '--'}</div><div class="key">Channel</div></div>
+    `;
+
+    // Risk flags
+    const riskSection = document.getElementById("riskSection");
+    if (reasons.length > 0) {
+        riskSection.innerHTML = `<div class="risk-title">Risk Flags</div>` + reasons.map(r =>
+            `<div class="risk-item">⚠️ ${r}</div>`
+        ).join("");
+    } else {
+        riskSection.innerHTML = `<div class="risk-item" style="background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);color:#6ee7b7">✓ No significant risk factors detected</div>`;
+    }
+
+    // Videos
+    const videos = r.videos || [];
+    if (videos.length > 0) {
+        document.getElementById("videosSection").style.display = "block";
+        document.getElementById("videosList").innerHTML = videos.map(v => {
+            const views = v.views || 0;
+            const likes = v.likes || 0;
+            const eng = views > 0 ? ((likes / views) * 100).toFixed(1) : "0.0";
+            return `
+                <div class="video-row">
+                    <div class="video-info">
+                        <div class="video-title">${escHtml(v.title || 'N/A')}</div>
+                        <div class="video-meta">${(views||0).toLocaleString()} views · ${(likes||0).toLocaleString()} likes</div>
+                    </div>
+                    <div class="video-eng ${parseFloat(eng) >= 3 ? 'good' : 'bad'}">${eng}% eng</div>
+                </div>
+            `;
+        }).join("");
+    } else {
+        document.getElementById("videosSection").style.display = "none";
+    }
+
+    loadHistory();
+}
+
+function downloadReport() {
+    if (!currentAuditId) return;
+    window.open(`/api/report/${currentAuditId}`, "_blank");
+}
+
+async function loadHistory() {
+    try {
+        const r = await fetch("/api/audits");
+        const audits = await r.json();
+        const list = document.getElementById("historyList");
+        if (!audits.length) {
+            list.innerHTML = '<div style="text-align:center;color:#444;padding:20px;font-size:0.85rem">No audits yet.</div>';
+            return;
+        }
+        list.innerHTML = audits.slice(0, 20).map(a => `
+            <div class="history-item">
+                <span class="history-handle">@${escHtml(a.handle)}</span>
+                <span class="history-platform">${a.platform}</span>
+                <span class="history-status ${a.status}">${a.status}</span>
+                ${a.report_path ? `<button class="history-download" onclick="window.open('/api/report/${a.id}','_blank')">📄 Report</button>` : ''}
+            </div>
+        `).join("");
+    } catch(e) {}
+}
+
+function showError(msg) {
+    const el = document.getElementById("errorMsg");
+    el.textContent = msg;
+    el.classList.add("visible");
+}
+
+function escHtml(str) {
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+}
+</script>
+</body>
+</html>

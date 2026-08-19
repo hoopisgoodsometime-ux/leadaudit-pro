@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful — Influencer Audit Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a28; --border: #2a2a3e; --text: #f0f0ff; --subtext: #8888aa; --accent: #6366f1; --accent2: #8b5cf6; --green: #10b981; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px 40px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+        }
+        .icon { font-size: 4rem; margin-bottom: 16px; }
+        h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; color: var(--green); }
+        p { color: var(--subtext); font-size: 0.95rem; line-height: 1.6; margin-bottom: 28px; }
+        .plan-tag { background: rgba(99,102,241,0.15); border: 1px solid var(--accent); color: var(--accent); padding: 6px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; display: inline-block; margin-bottom: 24px; }
+        .btn { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border-radius: 12px; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.15s; }
+        .btn:hover { opacity: 0.88; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">✅</div>
+        <h1>Payment Confirmed!</h1>
+        <div class="plan-tag" id="plan-tag">Pro Plan Activated</div>
+        <p>Your subscription is active. You now have unlimited access to Influencer Audit Pro. Thank you for your support!</p>
+        <a href="/" class="btn">Start Auditing →</a>
+    </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const plan = params.get('plan');
+        if (plan === 'monthly') document.getElementById('plan-tag').textContent = 'Pro Plan — $29/month';
+        else if (plan === 'single') document.getElementById('plan-tag').textContent = 'Single Report — $5';
+    </script>
+</body>
+</html>

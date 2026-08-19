@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Audit — LeadAudit Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a28;
+            --surface3: #22223a; --border: #2a2a3e; --text: #f0f0ff;
+            --subtext: #8888aa; --accent: #6366f1; --accent2: #8b5cf6;
+            --green: #10b981; --yellow: #f59e0b; --red: #ef4444;
+            --blue: #3b82f6;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        .header {
+            background: linear-gradient(135deg, var(--surface), #1a1040);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .header-icon { font-size: 2rem; }
+        .header-text h1 { font-size: 1.3rem; font-weight: 700; }
+        .header-text p { color: var(--subtext); font-size: 0.82rem; margin-top: 2px; }
+        .header-links { margin-left: auto; display: flex; gap: 16px; }
+        .header-links a { color: var(--subtext); text-decoration: none; font-size: 0.85rem; }
+        .header-links a:hover { color: var(--text); }
+
+        .main { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
+        .card-header { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+        .card-title { font-size: 0.78rem; font-weight: 600; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-body { padding: 20px; }
+
+        .input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+        .url-input {
+            flex: 1; padding: 14px 16px; background: var(--surface2); border: 2px solid var(--border);
+            border-radius: 12px; color: var(--text); font-size: 0.95rem;
+            font-family: 'JetBrains Mono', monospace; outline: none; transition: border-color 0.2s;
+        }
+        .url-input:focus { border-color: var(--accent); }
+        .url-input::placeholder { color: #555; }
+
+        .btn { padding: 14px 24px; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Score ring */
+        .score-ring { display: flex; align-items: center; gap: 24px; margin-bottom: 20px; }
+        .score-circle {
+            width: 110px; height: 110px; border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: 700; border: 4px solid; flex-shrink: 0;
+        }
+        .score-circle.a { border-color: var(--green); color: var(--green); }
+        .score-circle.b { border-color: #22d3ee; color: #22d3ee; }
+        .score-circle.c { border-color: var(--yellow); color: var(--yellow); }
+        .score-circle.d { border-color: #f97316; color: #f97316; }
+        .score-circle.f { border-color: var(--red); color: var(--red); }
+        .score-circle span { font-size: 0.7rem; font-weight: 500; opacity: 0.7; }
+        .score-grade { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+        .score-grade.a { color: var(--green); }
+        .score-grade.b { color: #22d3ee; }
+        .score-grade.c { color: var(--yellow); }
+        .score-grade.d { color: #f97316; }
+        .score-grade.f { color: var(--red); }
+        .score-label { color: var(--subtext); font-size: 0.82rem; }
+
+        /* Sections */
+        .section-title { font-size: 0.72rem; font-weight: 600; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; margin-top: 16px; }
+        .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .check-item { background: var(--surface2); padding: 10px 14px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; }
+        .check-item .icon { font-size: 1rem; }
+        .check-item .val { margin-left: auto; font-weight: 600; }
+        .check-item .val.ok { color: var(--green); }
+        .check-item .val.warn { color: var(--yellow); }
+        .check-item .val.bad { color: var(--red); }
+
+        /* Recommendations */
+        .rec-item { background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; font-size: 0.82rem; color: #a5b4fc; }
+        .rec-item.critical { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.25); color: #fca5a5; }
+
+        /* Meta row */
+        .meta-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .meta-tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 0.75rem; color: var(--subtext); }
+        .meta-tag strong { color: var(--text); }
+
+        /* Loading */
+        .spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .progress-section { display: none; margin-top: 16px; text-align: center; padding: 20px; }
+        .progress-section.visible { display: block; }
+        .progress-text { color: var(--subtext); font-size: 0.85rem; margin-top: 8px; }
+        .pulse { animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .error-msg { background: rgba(239,68,68,0.1); border: 1px solid var(--red); border-radius: 8px; padding: 10px 14px; color: #fca5a5; font-size: 0.85rem; margin-top: 10px; display: none; }
+        .error-msg.visible { display: block; }
+
+        @media (max-width: 600px) {
+            .input-row { flex-direction: column; }
+            .score-ring { flex-direction: column; text-align: center; }
+            .check-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-icon">&#128269;</div>
+    <div class="header-text">
+        <h1>Website Audit</h1>
+        <p>Powered by JARVIS AI — SEO, Speed, Security &amp; Tracking</p>
+    </div>
+    <div class="header-links">
+        <a href="/">Influencer Audit</a>
+        <a href="/website-audit">Website Audit</a>
+    </div>
+</div>
+
+<div class="main">
+    <!-- Audit Card -->
+    <div class="card">
+        <div class="card-header"><span class="card-title">New Website Audit</span></div>
+        <div class="card-body">
+            <div class="input-row">
+                <input type="text" id="urlInput" class="url-input"
+                       placeholder="https://example.com"
+                       autocomplete="off" spellcheck="false">
+                <button class="btn btn-primary" id="auditBtn" onclick="startAudit()">
+                    <span id="btnText">&#128269; Audit Now</span>
+                    <span class="spinner" id="btnSpinner"></span>
+                </button>
+            </div>
+            <div class="error-msg" id="errorMsg"></div>
+        </div>
+    </div>
+
+    <!-- Result Card -->
+    <div class="card" id="resultCard" style="display:none">
+        <div class="card-header"><span class="card-title">Audit Results</span></div>
+        <div class="card-body" id="resultBody">
+            <div class="progress-section visible" id="progressSection">
+                <div style="font-size:2rem">&#128269;</div>
+                <div class="progress-text pulse" id="progressText">Analyzing website...</div>
+            </div>
+            <div id="resultContent" style="display:none">
+                <div class="score-ring">
+                    <div class="score-circle" id="scoreCircle">
+                        <span id="scoreNum">--</span>
+                        <span>/100</span>
+                    </div>
+                    <div>
+                        <div class="score-grade" id="scoreGrade">--</div>
+                        <div class="score-label" id="scoreLabel">--</div>
+                    </div>
+                </div>
+
+                <div class="section-title">Checks</div>
+                <div class="check-grid" id="checkGrid"></div>
+
+                <div id="recSection" style="display:none">
+                    <div class="section-title">Recommendations</div>
+                    <div id="recList"></div>
+                </div>
+
+                <div class="meta-row" id="metaRow"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function startAudit() {
+    const url = document.getElementById("urlInput").value.trim();
+    if (!url) return;
+
+    const btn = document.getElementById("auditBtn");
+    const btnText = document.getElementById("btnText");
+    const btnSpinner = document.getElementById("btnSpinner");
+    btn.disabled = true;
+    btnText.style.display = "none";
+    btnSpinner.style.display = "inline-block";
+    document.getElementById("errorMsg").classList.remove("visible");
+    document.getElementById("resultCard").style.display = "block";
+    document.getElementById("progressSection").style.display = "block";
+    document.getElementById("resultContent").style.display = "none";
+
+    try {
+        const r = await fetch("/api/website-audit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url })
+        });
+        const d = await r.json();
+        if (!r.ok) { showError(d.error); return; }
+        showResult(d);
+    } catch(e) {
+        showError("Network error. Try again.");
+    } finally {
+        btn.disabled = false;
+        btnText.style.display = "inline";
+        btnSpinner.style.display = "none";
+    }
+}
+
+function showResult(d) {
+    document.getElementById("progressSection").style.display = "none";
+    document.getElementById("resultContent").style.display = "block";
+
+    const score = d.score || 0;
+    const grade = d.grade || "F";
+
+    const circle = document.getElementById("scoreCircle");
+    circle.className = "score-circle " + grade.toLowerCase();
+    document.getElementById("scoreNum").textContent = score;
+
+    const gradeMap = { A: "A — Excellent", B: "B — Good", C: "C — Fair", D: "D — Poor", F: "F — Failing" };
+    const labelMap = {
+        A: "Strong site — minimal issues",
+        B: "Good site — some improvements needed",
+        C: "Average — several issues to address",
+        D: "Below average — multiple issues",
+        F: "Significant problems — needs attention",
+    };
+    const gEl = document.getElementById("scoreGrade");
+    gEl.textContent = gradeMap[grade] || grade;
+    gEl.className = "score-grade " + grade.toLowerCase();
+    document.getElementById("scoreLabel").textContent = labelMap[grade] || "";
+
+    const checks = [
+        { label: "SSL/HTTPS", ok: d.ssl, warn: !d.ssl, icon: d.ssl ? "&#128274;" : "&#128275;", val: d.ssl ? "Secure" : "No SSL", valClass: d.ssl ? "ok" : "bad" },
+        { label: "Page Title", ok: d.title_length >= 30 && d.title_length <= 70, warn: d.title_length > 0, icon: "&#128221;", val: d.title_length + " chars", valClass: d.title_length >= 30 && d.title_length <= 70 ? "ok" : d.title_length > 0 ? "warn" : "bad" },
+        { label: "Meta Description", ok: d.meta_description_length >= 100 && d.meta_description_length <= 160, warn: d.meta_description_length > 0, icon: "&#128221;", val: d.meta_description_length + " chars", valClass: d.meta_description_length >= 100 && d.meta_description_length <= 160 ? "ok" : d.meta_description_length > 0 ? "warn" : "bad" },
+        { label: "H1 Headings", ok: d.h1_count === 1, warn: d.h1_count > 1, icon: "&#128293;", val: d.h1_count === 1 ? "Good (1)" : d.h1_count === 0 ? "Missing" : "Too many (" + d.h1_count + ")", valClass: d.h1_count === 1 ? "ok" : "bad" },
+        { label: "Google Analytics", ok: d.has_ga4, warn: false, icon: "&#128200;", val: d.has_ga4 ? "GA4 detected" : "Not found", valClass: d.has_ga4 ? "ok" : "warn" },
+        { label: "Facebook Pixel", ok: d.has_fb_pixel, warn: false, icon: "&#128101;", val: d.has_fb_pixel ? "Detected" : "Not found", valClass: d.has_fb_pixel ? "ok" : "warn" },
+        { label: "Mobile Friendly", ok: d.mobile_friendly, warn: !d.mobile_friendly, icon: "&#128241;", val: d.mobile_friendly ? "Yes" : "No viewport", valClass: d.mobile_friendly ? "ok" : "bad" },
+        { label: "Load Speed", ok: d.load_time_ms < 1500, warn: d.load_time_ms >= 1500 && d.load_time_ms < 3000, icon: "&#9889;", val: d.load_time_ms + "ms", valClass: d.load_time_ms < 1500 ? "ok" : d.load_time_ms < 3000 ? "warn" : "bad" },
+    ];
+
+    document.getElementById("checkGrid").innerHTML = checks.map(c => `
+        <div class="check-item">
+            <span class="icon">${c.icon}</span>
+            <span>${c.label}</span>
+            <span class="val ${c.valClass}">${c.val}</span>
+        </div>
+    `).join("");
+
+    const recs = (d.critical_issues || []).map(r => `<div class="rec-item critical">&#9888; ${escHtml(r)}</div>`)
+        .concat((d.recommendations || []).map(r => `<div class="rec-item">&#8594; ${escHtml(r)}</div>`));
+
+    const recSection = document.getElementById("recSection");
+    if (recs.length > 0) {
+        recSection.style.display = "block";
+        document.getElementById("recList").innerHTML = recs.join("");
+    } else {
+        recSection.style.display = "none";
+    }
+
+    document.getElementById("metaRow").innerHTML = `
+        <div class="meta-tag">Title: <strong>${escHtml((d.title || "—").substring(0, 60))}</strong></div>
+        <div class="meta-tag">H2 headings: <strong>${d.h2_count}</strong></div>
+        <div class="meta-tag">Page size: <strong>${(d.page_size_bytes / 1024).toFixed(0)}KB</strong></div>
+        <div class="meta-tag">Redirects: <strong>${d.redirects}</strong></div>
+    `;
+}
+
+function showError(msg) {
+    const el = document.getElementById("errorMsg");
+    el.textContent = msg;
+    el.classList.add("visible");
+    document.getElementById("resultCard").style.display = "none";
+}
+
+function escHtml(str) {
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+document.getElementById("urlInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") startAudit();
+});
+</script>
+</body>
+</html>
