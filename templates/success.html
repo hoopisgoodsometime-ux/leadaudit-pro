@@ -3,36 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful — Influencer Audit Pro</title>
+    <title>Payment Confirmed — LeadAudit Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a28; --border: #2a2a3e; --text: #f0f0ff; --subtext: #8888aa; --accent: #6366f1; --accent2: #8b5cf6; --green: #10b981; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-
+        :root {
+            --bg: #080b14;
+            --surface: rgba(16, 23, 42, 0.85);
+            --border: rgba(148, 163, 184, 0.1);
+            --text: #f1f5f9;
+            --subtext: #94a3b8;
+            --accent: #6366f1;
+            --accent2: #8b5cf6;
+            --green: #10b981;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(16,185,129,0.15), transparent 70%);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            animation: pulse 4s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.3; }
+        }
         .card {
             background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 48px 40px;
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 28px;
+            padding: 52px 44px;
             max-width: 480px;
             width: 90%;
             text-align: center;
+            backdrop-filter: blur(30px);
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
-        .icon { font-size: 4rem; margin-bottom: 16px; }
-        h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; color: var(--green); }
-        p { color: var(--subtext); font-size: 0.95rem; line-height: 1.6; margin-bottom: 28px; }
-        .plan-tag { background: rgba(99,102,241,0.15); border: 1px solid var(--accent); color: var(--accent); padding: 6px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; display: inline-block; margin-bottom: 24px; }
-        .btn { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border-radius: 12px; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.15s; }
-        .btn:hover { opacity: 0.88; transform: translateY(-2px); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .icon-wrap {
+            width: 80px; height: 80px;
+            background: rgba(16,185,129,0.12);
+            border: 2px solid rgba(16,185,129,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 2.4rem;
+            animation: checkPop 0.5s 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        @keyframes checkPop {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--green);
+            letter-spacing: -0.5px;
+        }
+        .subtitle {
+            color: var(--subtext);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .plan-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(99,102,241,0.12);
+            border: 1px solid rgba(99,102,241,0.3);
+            color: #a5b4fc;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 28px;
+        }
+        .features {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 28px;
+            text-align: left;
+        }
+        .features p {
+            font-size: 0.82rem;
+            color: var(--subtext);
+            margin-bottom: 8px;
+        }
+        .features ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .features li {
+            font-size: 0.82rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .features li .g { color: var(--green); }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 0 0 25px rgba(99,102,241,0.3);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(99,102,241,0.45);
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <div class="icon">✅</div>
+        <div class="icon-wrap">✓</div>
         <h1>Payment Confirmed!</h1>
+        <p class="subtitle">Your subscription is active. You now have full access to LeadAudit Pro.</p>
         <div class="plan-tag" id="plan-tag">Pro Plan Activated</div>
-        <p>Your subscription is active. You now have unlimited access to Influencer Audit Pro. Thank you for your support!</p>
+        <div class="features">
+            <p>Your plan includes:</p>
+            <ul>
+                <li><span class="g">✓</span> Unlimited influencer audits</li>
+                <li><span class="g">✓</span> Priority processing</li>
+                <li><span class="g">✓</span> PDF report downloads</li>
+                <li><span class="g">✓</span> Calibration feedback loop</li>
+            </ul>
+        </div>
         <a href="/" class="btn">Start Auditing →</a>
     </div>
     <script>
