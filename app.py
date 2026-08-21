@@ -459,6 +459,10 @@ def cancel():
 def website_audit():
     return render_template("website-audit.html")
 
+@app.route("/sitemap.xml")
+def sitemap():
+    return render_template("sitemap.xml")
+
 # ── Website Audit Outcomes API ──────────────────────────────────────────────
 
 @app.route("/api/report-outcome", methods=["POST"])
