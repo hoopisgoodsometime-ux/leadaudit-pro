@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — LeadAudit Blog{% endblock %}
+{% block content %}
+
+<style>
+.article-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+}
+.article-header {
+    margin-bottom: 40px;
+    animation: fadeUp 0.6s ease both;
+}
+.article-meta {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+}
+.article-tag {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    color: var(--accent); padding: 4px 12px;
+    border-radius: 8px; font-size: 0.72rem; font-weight: 600;
+}
+.article-date { color: var(--subtext); font-size: 0.8rem; }
+.article-header h1 {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 800; letter-spacing: -0.8px; line-height: 1.15;
+    margin-bottom: 16px;
+}
+.article-header .excerpt {
+    font-size: 1.1rem; color: var(--subtext); line-height: 1.6;
+}
+
+.article-body {
+    font-size: 1rem; line-height: 1.75; color: var(--text);
+    animation: fadeUp 0.6s 0.2s ease both;
+}
+.article-body h2 {
+    font-size: 1.5rem; font-weight: 700; margin: 40px 0 16px;
+    letter-spacing: -0.3px;
+}
+.article-body h3 {
+    font-size: 1.2rem; font-weight: 700; margin: 30px 0 12px;
+}
+.article-body p { margin-bottom: 20px; }
+.article-body p:last-child { margin-bottom: 0; }
+.article-body ul, .article-body ol {
+    margin: 0 0 20px 24px;
+}
+.article-body li { margin-bottom: 8px; }
+.article-body strong { color: var(--text); font-weight: 700; }
+.article-body em { color: var(--subtext); font-style: italic; }
+
+.article-body .callout {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 16px 20px;
+    margin: 28px 0;
+    font-size: 0.95rem;
+}
+.article-body .callout-title {
+    font-weight: 700; color: var(--accent); margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+}
+.article-body .checklist {
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin: 28px 0;
+}
+.article-body .checklist-title {
+    font-weight: 700; color: var(--green); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 6px;
+}
+.article-body .checklist li {
+    list-style: none; padding-left: 24px; position: relative; margin-bottom: 8px;
+}
+.article-body .checklist li::before {
+    content: '✓'; position: absolute; left: 0; color: var(--green);
+    font-weight: 700;
+}
+
+.article-body .divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 40px 0;
+}
+
+.cta-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px;
+    margin-top: 48px;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    animation: fadeUp 0.6s 0.3s ease both;
+}
+.cta-box h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+.cta-box p { color: var(--subtext); font-size: 0.9rem; margin-bottom: 18px; }
+.cta-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white; border-radius: 12px; text-decoration: none;
+    font-weight: 700; font-size: 0.9rem;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s;
+}
+.cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+}
+
+.back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--subtext); text-decoration: none;
+    font-size: 0.85rem; font-weight: 500;
+    margin-bottom: 24px;
+    transition: color 0.2s;
+}
+.back-link:hover { color: var(--text); }
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<div class="article-wrap">
+    <a href="/blog" class="back-link">← Back to Blog</a>
+
+    <div class="article-header">
+        <div class="article-meta">
+            <span class="article-tag">{{ category }}</span>
+            <span class="article-date">{{ date }}</span>
+        </div>
+        <h1>{{ title }}</h1>
+        <p class="excerpt">{{ excerpt }}</p>
+    </div>
+
+    <div class="article-body">
+{{ content }}
+    </div>
+
+    <div class="cta-box">
+        <h3>Ready to Check an Influencer?</h3>
+        <p>Run a free audit on any YouTube channel — get the score, engagement analysis, and fake-follower verdict in 30 seconds.</p>
+        <a href="/" class="cta-btn">⚡ Run Free Influencer Audit →</a>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LeadAudit Pro{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #080b14;
+            --surface: rgba(16, 23, 42, 0.7);
+            --surface2: rgba(30, 41, 59, 0.6);
+            --border: rgba(148, 163, 184, 0.1);
+            --border-glow: rgba(99, 102, 241, 0.3);
+            --text: #f1f5f9;
+            --subtext: #94a3b8;
+            --accent: #6366f1;
+            --accent2: #8b5cf6;
+            --accent3: #06b6d4;
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .bg-orbs {
+            position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+        }
+        .bg-orbs::before, .bg-orbs::after {
+            content: ''; position: absolute; border-radius: 50%; filter: blur(120px);
+            opacity: 0.3; animation: float 20s ease-in-out infinite;
+        }
+        .bg-orbs::before {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, #6366f1, transparent 70%);
+            top: -200px; left: -200px;
+        }
+        .bg-orbs::after {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #06b6d4, transparent 70%);
+            bottom: -150px; right: -150px;
+            animation-delay: -10s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(40px, -30px); }
+            66% { transform: translate(-20px, 20px); }
+        }
+
+        .page-wrapper { position: relative; z-index: 1; }
+
+        /* Nav */
+        .nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 40px; position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(20px);
+            background: rgba(8, 11, 20, 0.75);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .nav-logo-icon {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; font-weight: 700; color: white;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+        .nav-logo-text { font-size: 1rem; font-weight: 700; color: var(--text); }
+        .nav-logo-text span { color: var(--accent); }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-links a {
+            color: var(--subtext); text-decoration: none;
+            font-size: 0.88rem; font-weight: 500; transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--text); }
+        .nav-links a.active { color: var(--text); }
+        .nav-cta {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white !important; padding: 8px 18px; border-radius: 10px;
+            font-weight: 600 !important; text-decoration: none;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+            transition: all 0.2s !important;
+        }
+        .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(99, 102, 241, 0.5); }
+
+        /* Footer */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 40px;
+            background: rgba(8, 11, 20, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        .footer-inner {
+            max-width: 960px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+        }
+        .footer-brand { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--subtext); }
+        .footer-brand-icon {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: 700; color: white;
+        }
+        .footer-links { display: flex; gap: 20px; }
+        .footer-links a { color: var(--subtext); text-decoration: none; font-size: 0.82rem; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--text); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 640px) {
+            .nav { padding: 14px 20px; }
+            .footer { padding: 30px 20px; }
+            .footer-inner { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-orbs"></div>
+<div class="page-wrapper">
+    <nav class="nav">
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon">✓</div>
+            <div class="nav-logo-text">Lead<span>Audit</span> Pro</div>
+        </a>
+        <div class="nav-links">
+            <a href="/website-audit">Website Audit</a>
+            <a href="/pricing">Pricing</a>
+            <a href="/blog">Blog</a>
+            <a href="/#audit" class="nav-cta">Get Started</a>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="footer-brand-icon">✓</div>
+                LeadAudit Pro — Built with 🕉️
+            </div>
+            <div class="footer-links">
+                <a href="/website-audit">Website Audit</a>
+                <a href="/pricing">Pricing</a>
+                <a href="/blog">Blog</a>
+            </div>
+        </div>
+    </footer>
+</div>
+</body>
+</html>
