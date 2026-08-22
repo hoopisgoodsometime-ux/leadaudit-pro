@@ -461,7 +461,9 @@ def website_audit():
 
 @app.route("/sitemap.xml")
 def sitemap():
-    return render_template("sitemap.xml")
+    response = send_file(BASE_DIR / "templates" / "sitemap.xml", mimetype="application/xml")
+    response.headers["Cache-Control"] = "no-cache"
+    return response
 
 # ── Website Audit Outcomes API ──────────────────────────────────────────────
 
