@@ -465,6 +465,10 @@ def sitemap():
     response.headers["Cache-Control"] = "no-cache"
     return response
 
+@app.route("/robots.txt")
+def robots():
+    return send_file(BASE_DIR / "templates" / "robots.txt", mimetype="text/plain")
+
 # ── Blog ────────────────────────────────────────────────────────────────────
 POSTS = {
 
